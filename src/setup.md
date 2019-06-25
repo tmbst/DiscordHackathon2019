@@ -12,9 +12,9 @@
     ```
  5. Either restart your terminal or type in source `.bashrc`
  6. Go to your golang projects folder and in your `src` folder git clone the project.
- 7. In order to build the files there are two options. `go build` and `go install`
-   a. `go build` builds your project in your current directory and creates the executable inside that directory. To remove it, run `go clean`
-   b. `go install` in your current directory also builds the project but sends it to `GOPATH/bin` so that you can run the executable from anywhere
+ 7. In order to build the files there are two options. `go build` and `go install` \\
+   a. `go build` builds your project in your current directory and creates the executable inside that directory. To remove it, run `go clean`\\
+   b. `go install` in your current directory also builds the project but sends it to `GOPATH/bin` so that you can run the executable from anywhere \\
  
 
 The project structure looks something like:
