@@ -3,8 +3,11 @@
 1. Run `sudo apt-get install golang-go` to download the Golang CLI
 2. Create a folder that will hold all of your Golang code.
 3. Inside the folder create two folders: `src` and `bin`
-  a. `src` contains your source files
-  b. `bin` contains the executables of your program(s) 
+    
+    a. `src` contains your source files
+    
+    b. `bin` contains the executables of your program(s) 
+
 4. In your `.bashrc` file, add:
     ```
         export GOPATH=<absolute path to golang folder>
