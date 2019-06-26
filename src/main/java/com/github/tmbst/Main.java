@@ -12,13 +12,13 @@ public class Main {
             System.out.println("Error! Discord token not set. Exiting...");
             System.exit(1);
         }
-
-        System.out.println(token);
-
+        
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
 
         // Add a listener which answers with "Pong!" if someone writes "!ping"
         api.addListener(new PingCommand());
+
+        Game.startGame(api);
 
         // Print the invite url of your bot
         System.out.println("You can invite the bot by using the following url: " + api.createBotInvite());
