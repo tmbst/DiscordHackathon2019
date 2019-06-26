@@ -6,12 +6,14 @@ import org.javacord.api.DiscordApiBuilder;
 public class Main {
 
     public static void main(String[] args) {
-        // Insert your bot's token here
-        if (args.length < 1) {
-            System.out.println("Please enter the bot's token as an argument.");
+
+        String token = System.getenv("DISCORDTOKEN");
+        if (token == null) {
+            System.out.println("Error! Discord token not set. Exiting...");
             System.exit(1);
         }
-        String token = args[0];
+
+        System.out.println(token);
 
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
 
@@ -21,6 +23,5 @@ public class Main {
         // Print the invite url of your bot
         System.out.println("You can invite the bot by using the following url: " + api.createBotInvite());
     }
-
 }
 
