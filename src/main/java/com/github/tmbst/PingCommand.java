@@ -7,7 +7,7 @@ public class PingCommand implements MessageCreateListener {
     @Override
     public void onMessageCreate(MessageCreateEvent event) {
         if (event.getMessage().getContent().equalsIgnoreCase("!ping")) {
-            event.getChannel().sendMessage("Pong!");
+            event.getChannel().sendMessage("YE3t");
         }
     }
 }

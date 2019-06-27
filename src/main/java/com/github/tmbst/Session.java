@@ -23,12 +23,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.*;
 
 
 public class Session implements MessageCreateListener {
 
     private static ListenerManager<ReactionAddListener> emojiAddListenerMgr;
+    private SessionState state;
+    private static final int DAYLENGTH = 1;
 
     @Override
     public void onMessageCreate(MessageCreateEvent event) {
@@ -48,7 +50,8 @@ public class Session implements MessageCreateListener {
                     .setDescription("React to join!")
                     .setAuthor(event.getMessageAuthor().getDisplayName(), null, event.getMessageAuthor().getAvatar())
                     .setColor(Color.BLUE)
-                    .setImage(new File("/home/duckytape/Projects/discordHackathon/src/main/java/com/github/tmbst/resources/splashArt.jpg"))
+                    //TODO: make this image path a relative path
+                    .setImage(new File("/home/justin/Documents/Projects/discordHackathon/src/main/java/com/github/tmbst/resources/splashArt.jpg"))
                     .setFooter("Discord Hack Week 2019 Submission!");
 
             // Set up the Message to be sent, initially thumbs-up react this message
@@ -94,7 +97,8 @@ public class Session implements MessageCreateListener {
         Server server;                                      // The server, needed in order to create text-channels
         ArrayList<Player> players = new ArrayList<>();      // Player Obj Lists
         ArrayList<User> userMafiaList = new ArrayList<>();  // List of Users in the Mafia
-
+        state = new SessionState();
+        state.setPlayerList(players);
         // Remove any listeners
         emojiAddListenerMgr.remove();
 
@@ -121,6 +125,7 @@ public class Session implements MessageCreateListener {
         // Check if the server exists.
         if (serv.isPresent()){
             server = serv.get();
+            state.setServer(server);
 
             // Set up the main text-channel
             // DENY: Everyone from seeing the channel except the players playing the game.
@@ -139,6 +144,7 @@ public class Session implements MessageCreateListener {
             }
             // Create the #townOfDiscord text channel
             ServerTextChannel TODTextChan = TODTextChanBuilder.create().join();
+            state.setTownChannel(TODTextChan);
 
             // Welcome message for the #townOfDiscord channel
             for (Player p : players) {
@@ -165,6 +171,7 @@ public class Session implements MessageCreateListener {
                 }
                 // Create the #mafiahideout text channel
                 ServerTextChannel mafiaTextChan = mafiaTextChannelBuilder.create().join();
+                state.setMafiaChannel(mafiaTextChan);
 
                 // Welcome message for the #mafiahideout channel
                 mafiaTextChan.sendMessage("@here Welcome to the Hideout! Your task is to kill all citizens." +
@@ -172,6 +179,45 @@ public class Session implements MessageCreateListener {
 
             }
 
+            citizenPhase();
+
         }
+
+    }
+
+    // TODO: may need a turn for each role. Better to make a role class that has you implement a turn function?
+    // THE AGE OLD DEBATE
+    private void citizenPhase() {
+        //announce day, announce dead
+        EmbedBuilder morningEmbed = new EmbedBuilder()
+                .setTitle("Rise and shine!")
+                .setDescription("Time for a new day of accusations! Accuse your townsfolk with !suspect <@name>")
+                .setColor(Color.BLUE)
+                .setFooter("TMBST");
+        state.getTownChannel().sendMessage(morningEmbed);
+
+        //listen for accusations
+        SuspectCommand suspectListener = new SuspectCommand(state.getTownChannel());
+        Main.api.addListener(suspectListener);
+
+        //set timer for day
+        ScheduledExecutorService timerService = Executors.newScheduledThreadPool(1);
+        ScheduledFuture morningTimer = timerService.schedule(new Runnable() {
+            @Override
+            public void run() {
+                EmbedBuilder nightEmbed = new EmbedBuilder()
+                        .setTitle("Off to bed!")
+                        .setDescription("The day has ended. Please wait for the next day to start.")
+                        .setColor(Color.BLUE)
+                        .setFooter("TMBST");
+                state.getTownChannel().sendMessage(nightEmbed);
+
+                state.getTownChannel().createUpdater().addPermissionOverwrite(state.getServer().getEveryoneRole(), new PermissionsBuilder()
+                    .setDenied(PermissionType.SEND_MESSAGES)
+                    .build()
+                ).update();
+                Main.api.removeListener(suspectListener);
+            }
+        }, DAYLENGTH, TimeUnit.MINUTES);
     }
 }
