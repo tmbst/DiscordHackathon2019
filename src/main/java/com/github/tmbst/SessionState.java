@@ -3,7 +3,7 @@ package com.github.tmbst;
 public class SessionState {
 
     // Roles stays the same so I made it public and static
-    public static enum Roles {CITIZEN, KILLER, MAFIA, DOCTOR}
+    public static enum Roles {CITIZEN, MAFIA}
 
     private Boolean isDay;
 
