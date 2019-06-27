@@ -2,10 +2,12 @@ package com.github.tmbst;
 
 import org.javacord.api.entity.channel.ServerTextChannel;
 import org.javacord.api.entity.channel.ServerTextChannelBuilder;
+import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
+import org.javacord.api.entity.user.User;
 import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.listener.message.MessageCreateListener;
 import org.javacord.api.listener.message.reaction.ReactionAddListener;
@@ -13,8 +15,12 @@ import org.javacord.api.listener.message.reaction.ReactionRemoveListener;
 import org.javacord.api.util.event.ListenerManager;
 
 import java.awt.*;
+import java.util.List;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Optional;
+import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 
 
 public class Session implements MessageCreateListener {
@@ -62,21 +68,31 @@ public class Session implements MessageCreateListener {
 
 
                         // Set-Up Game, listeners closed at this point
-                        if (playerCount == 3) {
+                        if (playerCount == 2) {
+
+                            // Create players
+                            ArrayList<Player> playerList = new ArrayList<>();
+                            List<User> userList = emojiAddEvent.getUsers().join();
+
                             try{
-                                new MessageBuilder()
-                                .append(emojiAddEvent.getUsers().get().get(0).getName() + "\n")
-                                .append(emojiAddEvent.getUsers().get().get(1).getName() + "\n")
-                                .append(emojiAddEvent.getUsers().get().get(2).getName() + "\n")
-                                .send(event.getChannel());
+                                // For each user wanting to play, create a Player Obj.
+                                for (User user : userList) {
+
+                                    // Obtain Username & Assign random role
+                                    String name = user.getName();
+                                    SessionState.Roles role = SessionState.Roles
+                                            .values()[new Random().nextInt(SessionState.Roles.values().length)];
+
+                                    Player player = new Player(name, role);
+                                    playerList.add(player);
+                                }
                             } catch (Exception e) {
                                 System.out.println("Error: " + e);
                             }
-                            setUp(server);
+
+                            // Everything ready for Set-Up!
+                            setUp(server, playerList);
                         }
-
-
-
                     }
                 }
             });
@@ -86,18 +102,29 @@ public class Session implements MessageCreateListener {
     }
 
     // Creates the text-channels needed for the game, determines the users playing
-    public void setUp(Optional<Server> serv) {
+    public void setUp(Optional<Server> serv, ArrayList<Player> players) {
         Server server;
-
         // Remove any listeners
         emojiAddListenerMgr.remove();
 
         // Check if the server exists.
         if (serv.isPresent()){
             server = serv.get();
-            new ServerTextChannelBuilder(server)
+
+            // Set up the main text-channel
+            ServerTextChannel TODTextChan =  new ServerTextChannelBuilder(server)
                     .setName("townOfDiscord")
-                    .create();
+                    .setTopic("Welcome all to the Town of Discord!")
+                    .create()
+                    .join();
+
+
+            for (Player p : players) {
+               TODTextChan.sendMessage("Welcome: " + p.getUsername() + " " + p.getRole());
+            }
+
+
+
         }
     }
 }
