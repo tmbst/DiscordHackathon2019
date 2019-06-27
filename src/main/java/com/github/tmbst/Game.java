@@ -18,9 +18,7 @@ public class Game {
 
     // Starts and sets up the game
     public static void startGame(DiscordApi api) {
-
         game = new Game(api);
-
     }
 
     // Get singleton
