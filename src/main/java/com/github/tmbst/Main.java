@@ -17,6 +17,7 @@ public class Main {
 
         // Add a listener which answers with "Pong!" if someone writes "!ping"
         api.addListener(new PingCommand());
+        api.addListener(new Session());
 
         Game.startGame(api);
 
