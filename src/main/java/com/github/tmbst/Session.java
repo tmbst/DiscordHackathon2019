@@ -3,6 +3,7 @@ package com.github.tmbst;
 import org.javacord.api.entity.channel.ServerTextChannel;
 import org.javacord.api.entity.channel.ServerTextChannelBuilder;
 import org.javacord.api.entity.message.Message;
+import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.event.message.MessageCreateEvent;
@@ -18,9 +19,7 @@ import java.util.Optional;
 
 public class Session implements MessageCreateListener {
 
-    private static int playerCounter = 0;
     private static ListenerManager<ReactionAddListener> emojiAddListenerMgr;
-    private static ListenerManager<ReactionRemoveListener> emojiRmvListenerMgr;
 
     @Override
     public void onMessageCreate(MessageCreateEvent event) {
@@ -46,24 +45,42 @@ public class Session implements MessageCreateListener {
             message.addReaction("\uD83D\uDC4D");
 
             // Begin listening for :thumbs-up: reacts, 5 needed, add to a user list
-            // TODO: removeOwnReactEmojiFromMessage(),
+            // TODO: removeOwnReactEmojiFromMessage() OR have an off by one
             emojiAddListenerMgr = message.addReactionAddListener(emojiAddEvent -> {
                 if (emojiAddEvent.getEmoji().equalsEmoji("\uD83D\uDC4D")) {
 
-                    playerCounter++;
-                    event.getChannel().sendMessage(Integer.toString(playerCounter));
+                    // Check the counter
+                    if (emojiAddEvent.getCount().isPresent()) {
+                        int playerCount = emojiAddEvent.getCount().get();
 
-                    // Set-Up Game, listeners closed at this point
-                    if (playerCounter == 3) {
-                        setUp(server);
+                        // Debug
+                        new MessageBuilder()
+                                .append("Added")
+                                .append(emojiAddEvent.getUser().getName())
+                                .append(Integer.toString(playerCount))
+                                .send(event.getChannel());
+
+
+                        // Set-Up Game, listeners closed at this point
+                        if (playerCount == 3) {
+                            try{
+                                new MessageBuilder()
+                                .append(emojiAddEvent.getUsers().get().get(0).getName() + "\n")
+                                .append(emojiAddEvent.getUsers().get().get(1).getName() + "\n")
+                                .append(emojiAddEvent.getUsers().get().get(2).getName() + "\n")
+                                .send(event.getChannel());
+                            } catch (Exception e) {
+                                System.out.println("Error: " + e);
+                            }
+                            setUp(server);
+                        }
+
+
+
                     }
                 }
             });
-            // Listen for when user's remove their reacts, essentially remove them from the list of users
-            emojiRmvListenerMgr = message.addReactionRemoveListener(emojiRmvEvent -> {
-                playerCounter--;
-                event.getChannel().sendMessage(Integer.toString(playerCounter));
-            });
+
         }
 
     }
@@ -74,8 +91,6 @@ public class Session implements MessageCreateListener {
 
         // Remove any listeners
         emojiAddListenerMgr.remove();
-        emojiRmvListenerMgr.remove();
-        playerCounter = 0;
 
         // Check if the server exists.
         if (serv.isPresent()){
