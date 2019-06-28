@@ -16,6 +16,8 @@ public class SuspectCommand implements MessageCreateListener {
     private static final String commandRegex = "!suspect(\\s+.*)?";
     private static final String usage = "Usage: !suspect <@user>";
     private final ServerTextChannel townChannel;
+    private static final String hammerEmoji = "\uD83D\uDD28";
+    private static final String innocentEmoji = "\uD83D\uDE07";
 
     public SuspectCommand(ServerTextChannel townChannel) {
         super();
@@ -34,18 +36,26 @@ public class SuspectCommand implements MessageCreateListener {
             if (callArgs.length > 1 && callArgs[1].startsWith("<@")) {
                 String accusedID = callArgs[1].substring(2, callArgs[1].length() - 1);
                 User accusedUser = currServer.getMemberById(accusedID).get();
-                String accusedName = accusedUser.getNickname(currServer).get();
+                String accusedName = accusedUser.getName();
                 User accuser = event.getMessage().getAuthor().asUser().get();
                 event.getChannel().sendMessage("You have been accused, <@" + accusedID + ">!");
                 Main.api.removeListener(this);
                 EmbedBuilder voteEmbed = new EmbedBuilder()
                         .setTitle("Vote now! Should we give " + accusedName + " the banhammer?")
                         .setDescription("React to vote! 50% vote required.")
-                        .setAuthor(accuser.getNickname(currServer).get())
+                        .setAuthor(accuser.getName())
                         .setColor(Color.BLUE)
                         .setFooter("TMBST");
                 Message voteMessage = event.getChannel().sendMessage(voteEmbed).join();
-//                voteMessage.addReaction()
+                voteMessage.addReaction(hammerEmoji);
+                voteMessage.addReaction(innocentEmoji);
+                voteMessage.addReactionAddListener(emojiAddEvent -> {
+                    if (emojiAddEvent.getEmoji().equalsEmoji(hammerEmoji)) {
+
+                    } else if (emojiAddEvent.getEmoji().equalsEmoji(innocentEmoji)) {
+
+                    }
+                });
             } else {
                 event.getChannel().sendMessage(usage);
             }
