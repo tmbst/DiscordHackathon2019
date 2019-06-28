@@ -34,7 +34,7 @@ public class SuspectCommand implements MessageCreateListener {
     }
 
     @Override
-    public void onMessageCreagite(MessageCreateEvent event) {
+    public void onMessageCreate(MessageCreateEvent event) {
 
         final String content = event.getMessageContent();
         String[] callArgs = content.split(" ", 3);
