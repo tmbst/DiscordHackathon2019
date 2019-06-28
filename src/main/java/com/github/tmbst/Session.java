@@ -2,8 +2,6 @@ package com.github.tmbst;
 
 import org.javacord.api.entity.channel.ServerTextChannel;
 import org.javacord.api.entity.channel.ServerTextChannelBuilder;
-import org.javacord.api.entity.channel.ServerTextChannelUpdater;
-import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
@@ -14,7 +12,6 @@ import org.javacord.api.entity.user.User;
 import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.listener.message.MessageCreateListener;
 import org.javacord.api.listener.message.reaction.ReactionAddListener;
-import org.javacord.api.listener.message.reaction.ReactionRemoveListener;
 import org.javacord.api.util.event.ListenerManager;
 
 import java.awt.*;
@@ -99,25 +96,32 @@ public class Session implements MessageCreateListener {
         ArrayList<User> userMafiaList = new ArrayList<>();  // List of Users in the Mafia
         state = new SessionState();
         state.setPlayerList(players);
+        int mafiaLeft = users.size() / 5;
+        int usersLeft = users.size();
         // Remove any listeners
         emojiAddListenerMgr.remove();
 
         // TODO: Note that a cap is needed on number of Mafia! Minimum of at least 1 for 5 players...
         // For each user wanting to play, create a Player Obj.
+        Random rand = new Random();
         for (User user : users) {
+            SessionState.Roles currRole;
+            String currName = user.getName();
 
-            // Obtain Username & Assign random role
-            String name = user.getName();
-            SessionState.Roles role = SessionState.Roles
-                    .values()[new Random().nextInt(SessionState.Roles.values().length)];
-
-            // This is to distinguish who is mafia for when setting up the mafia text-channel
-            if(role == SessionState.Roles.MAFIA){
+            //ensure number of mafia is filled
+            boolean isMafia = rand.nextInt(usersLeft) < mafiaLeft;
+            if (isMafia) {
+                currRole = SessionState.Roles.MAFIA;
                 userMafiaList.add(user);
+                mafiaLeft--;
+            } else {
+                //note: this works due to mafia being the first on the list of roles
+                currRole = SessionState.Roles.values()[rand.nextInt(SessionState.Roles.values().length - 1) + 1];
             }
+            usersLeft--;
 
             // Create player and add to list of players
-            Player player = new Player(name, role);
+            Player player = new Player(currName, currRole);
             players.add(player);
 
         }
