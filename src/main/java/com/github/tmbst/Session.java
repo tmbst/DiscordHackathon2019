@@ -28,6 +28,8 @@ public class Session implements MessageCreateListener {
     private static ListenerManager<ReactionAddListener> emojiAddListenerMgr;
     private SessionState state;
     private static final int DAYLENGTH = 1;
+    private static final int PLAYERSPERMAFIA = 1;
+    private static final int MINPLAYERS = 2;
 
     @Override
     public void onMessageCreate(MessageCreateEvent event) {
@@ -43,12 +45,12 @@ public class Session implements MessageCreateListener {
             // TODO: Hardcoded image! look at .setImage() (Clearly ducky's files)
             EmbedBuilder joinEmbed = new EmbedBuilder()
                     .setTitle("Starting: Town of Discord!")
-                    .addField("Players needed to play:", "5")
+                    .addField("Players needed to play:", Integer.toString(MINPLAYERS))
                     .setDescription("React to join!")
                     .setAuthor(event.getMessageAuthor().getDisplayName(), null, event.getMessageAuthor().getAvatar())
                     .setColor(Color.BLUE)
                     //TODO: make this image path a relative path
-                    .setImage(new File("/home/duckytape/Projects/discordHackathon/src/main/java/com/github/tmbst/resources/splashArt.jpg"))
+                    .setImage(new File("/home/justin/Documents/Projects/discordHackathon/src/main/java/com/github/tmbst/resources/splashArt.jpg"))
                     .setFooter("Discord Hack Week 2019 Submission!");
 
             // Set up the Message to be sent, initially thumbs-up react this message
@@ -74,7 +76,7 @@ public class Session implements MessageCreateListener {
 
 
                         // Set-Up Game, listeners will close as soon as setUp is called.
-                        if (playerCount == 2) {
+                        if (playerCount == MINPLAYERS) {
                             // Get the list of users wanting to play, pass to the set-up
                             List<User> userList = emojiAddEvent.getUsers().join();
                             setUp(server,  userList);
@@ -98,7 +100,7 @@ public class Session implements MessageCreateListener {
 
         state = new SessionState();
         state.setPlayerList(players);
-        int mafiaLeft = users.size() / 5;
+        int mafiaLeft = users.size() / PLAYERSPERMAFIA;
         int usersLeft = users.size();
         state.setMafiaList(userMafiaList);
         state.setCitizenList(userCitizenList);
@@ -229,6 +231,8 @@ public class Session implements MessageCreateListener {
                     .build()
                 ).update();
                 Main.api.removeListener(suspectListener);
+
+                Main.api.addListener(new KillCommand(state));
             }
         }, DAYLENGTH, TimeUnit.MINUTES);
     }
