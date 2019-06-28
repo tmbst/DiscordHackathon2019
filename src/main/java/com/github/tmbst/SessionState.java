@@ -1,6 +1,7 @@
 package com.github.tmbst;
 
 import org.javacord.api.entity.channel.ServerTextChannel;
+import org.javacord.api.entity.permission.Role;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 
@@ -16,10 +17,12 @@ public class SessionState {
     private Roles activeRole;
     private ServerTextChannel townChannel;
     private ServerTextChannel mafiaChannel;
+    private ServerTextChannel graveyardChannel;
     private List<Player> playerList;
     private List<User> mafiaList;
     private List<User> citizenList;
     private Server server;
+    private Role deadRole;
     private int numPlayers;
 
     // Constructor
@@ -46,11 +49,15 @@ public class SessionState {
         this.activeRole = newRole;
     }
 
+    public void setDeadRole(Role deadRole) {this.deadRole = deadRole;}
+
     public void setNumPlayers(int numPlayers) {this.numPlayers = numPlayers;}
 
     public int getNumPlayers() {
         return numPlayers;
     }
+
+    public Role getDeadRole() {return deadRole;}
 
     public ServerTextChannel getTownChannel() {
         return townChannel;
@@ -68,8 +75,23 @@ public class SessionState {
         this.mafiaChannel = channel;
     }
 
+    public ServerTextChannel getGraveyardChannel() {
+        return graveyardChannel;
+    }
+
+    public void setGraveyardChannel(ServerTextChannel channel) {
+        this.graveyardChannel = channel;
+    }
+
     public List<Player> getPlayerList() {
         return playerList;
+    }
+    public List<User> getMafiaList() {
+        return mafiaList;
+    }
+
+    public List<User> getCitizenList() {
+        return citizenList;
     }
 
     public void setPlayerList(List<Player> playerList) {

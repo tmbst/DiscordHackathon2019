@@ -6,7 +6,9 @@ import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.permission.PermissionType;
+import org.javacord.api.entity.permission.Permissions;
 import org.javacord.api.entity.permission.PermissionsBuilder;
+import org.javacord.api.entity.permission.RoleBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.event.message.MessageCreateEvent;
@@ -149,6 +151,10 @@ public class Session implements MessageCreateListener {
                     .setTopic("Welcome all to the Town of Discord!")
                     .addPermissionOverwrite(server.getEveryoneRole(), new PermissionsBuilder()
                             .setDenied(PermissionType.READ_MESSAGES, PermissionType.SEND_MESSAGES)
+                            .build())
+                    .addPermissionOverwrite(server.getRolesByName("dead").get(0), new PermissionsBuilder()
+                            .setAllowed(PermissionType.READ_MESSAGES)
+                            .setDenied(PermissionType.SEND_MESSAGES)
                             .build());
             for (User u : users) {
                 TODTextChanBuilder.addPermissionOverwrite(u, new PermissionsBuilder()
@@ -164,6 +170,23 @@ public class Session implements MessageCreateListener {
             for (Player p : players) {
                TODTextChan.sendMessage("Welcome: " + p.getUsername() + " " + p.getRole());
             }
+
+            // Set up the #graveyard text-channel
+            // NOTE: Must have dead role made in server already, please read documentation for offical set-up rules.
+            ServerTextChannelBuilder graveyardTextChanBuilder = new ServerTextChannelBuilder(server)
+                    .setName("graveyard")
+                    .setTopic("Oh dear, you are dead!")
+                    .addPermissionOverwrite(server.getRolesByName("dead").get(0), new PermissionsBuilder()
+                            .setAllowed(PermissionType.READ_MESSAGES, PermissionType.SEND_MESSAGES)
+                            .setDenied(PermissionType.ATTACH_FILE)
+                            .build())
+                    .addPermissionOverwrite(server.getEveryoneRole(), new PermissionsBuilder()
+                            .setDenied(PermissionType.READ_MESSAGES, PermissionType.SEND_MESSAGES)
+                            .build());
+            ServerTextChannel graveyardTextChan = graveyardTextChanBuilder.create().join();
+            state.setGraveyardChannel(graveyardTextChan);
+            state.setDeadRole(server.getRolesByName("dead").get(0));
+
 
             // TODO: Note that as long as we assign at least 1 mafia, then this check is irrelevant! Get rid of later.
             if (!userMafiaList.isEmpty()) {

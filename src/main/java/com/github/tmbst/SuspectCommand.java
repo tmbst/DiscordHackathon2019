@@ -10,6 +10,8 @@ import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.listener.message.MessageCreateListener;
 
 import java.awt.*;
+import java.util.List;
+import java.util.ArrayList;
 
 public class SuspectCommand implements MessageCreateListener {
 
@@ -18,6 +20,7 @@ public class SuspectCommand implements MessageCreateListener {
     private final ServerTextChannel townChannel;
     private static final String hammerEmoji = "\uD83D\uDD28";
     private static final String innocentEmoji = "\uD83D\uDE07";
+    private static final String fEmoji = "\uD83C\uDDEB";
     private final SessionState state;
 
     public SuspectCommand(ServerTextChannel townChannel, SessionState state) {
@@ -29,6 +32,9 @@ public class SuspectCommand implements MessageCreateListener {
 
     @Override
     public void onMessageCreate(MessageCreateEvent event) {
+
+        List<Player> players = state.getPlayerList();
+
         final String content = event.getMessageContent();
         String[] callArgs = content.split(" ", 3);
         //TODO: deal with optionals correctly
@@ -44,17 +50,22 @@ public class SuspectCommand implements MessageCreateListener {
 
                 event.getChannel().sendMessage("You have been accused, <@" + accusedID + ">!");
                 Main.api.removeListener(this);
+
                 EmbedBuilder voteEmbed = new EmbedBuilder()
                         .setTitle("Vote now! Should we give " + accusedName + " the banhammer?")
                         .setDescription("React to vote! 50% vote required.")
                         .setAuthor(accuser.getName())
                         .setColor(Color.BLUE)
                         .setFooter("TMBST");
+
                 Message voteMessage = event.getChannel().sendMessage(voteEmbed).join();
                 voteMessage.addReaction(hammerEmoji);
                 voteMessage.addReaction(innocentEmoji);
 
                 int numPlayers = state.getNumPlayers();
+
+
+                EmbedBuilder voteResultEmbed = new EmbedBuilder();
                 voteMessage.addReactionAddListener(emojiAddEvent -> {
                     // GUILTY
                     if (emojiAddEvent.getEmoji().equalsEmoji(hammerEmoji)) {
@@ -63,12 +74,29 @@ public class SuspectCommand implements MessageCreateListener {
                             int voteCounter = emojiAddEvent.getCount().get();
 
                             if (voteCounter >= numPlayers) {
-                                // sit
-                                // get the role given to accused user (mafia/citizen)
-                                // pop that user from the mafia/citizen list
-                                // flag as dead (they ded)
-                                // announce that accused user died
-                                // check if either mafia or citizen list is empty (?) where does this go...
+
+                                voteResultEmbed.setTitle(accusedName + " has received the banhammer and is now dead!");
+                                voteResultEmbed.setAuthor(accusedName);
+                                // Grab that player's role
+                                for (Player p: players ) {
+                                    // Get the accused player.
+                                    if(p.getUsername().equals(accusedName)){
+                                        voteResultEmbed.setDescription("Their role has been revealed to be...." + p.getRole());
+                                        if (p.getRole() == SessionState.Roles.MAFIA) {
+                                            state.getMafiaList().remove(accusedUser);
+                                        }
+                                        else if(p.getRole() == SessionState.Roles.CITIZEN) {
+                                            state.getCitizenList().remove(accusedUser);
+                                        }
+                                        voteResultEmbed.setColor(Color.RED);
+                                        voteResultEmbed.setFooter("F to pay respects");
+
+                                    }
+                                }
+                                Message voteResMessage = event.getChannel().sendMessage(voteResultEmbed).join();
+                                voteResMessage.addReaction(fEmoji);
+                                accusedUser.addRole(state.getDeadRole());
+                                // TODO: check if either mafia or citizen list is empty (?) where does this go...
                             }
                         }
                      // INNOCENT
@@ -78,9 +106,12 @@ public class SuspectCommand implements MessageCreateListener {
                             int voteCounter = emojiAddEvent.getCount().get();
 
                             if (voteCounter >= numPlayers) {
-                                // ok u live I guess
-                                // basically vote fails, so game just continues
-                                // no longer accused
+                                voteResultEmbed.setTitle(accusedName + " is perceived innocent!")
+                                    .setDescription("The Banhammer awaits the next suspect...")
+                                    .setAuthor(accusedName)
+                                    .setColor(Color.GREEN)
+                                    .setFooter("!suspect still available until night.");
+                                event.getChannel().sendMessage(voteResultEmbed).join();
                             }
                         }
 
