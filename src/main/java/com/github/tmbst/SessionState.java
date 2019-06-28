@@ -2,6 +2,7 @@ package com.github.tmbst;
 
 import org.javacord.api.entity.channel.ServerTextChannel;
 import org.javacord.api.entity.server.Server;
+import org.javacord.api.entity.user.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,10 @@ public class SessionState {
     private ServerTextChannel townChannel;
     private ServerTextChannel mafiaChannel;
     private List<Player> playerList;
+    private List<User> mafiaList;
+    private List<User> citizenList;
     private Server server;
+    private int numPlayers;
 
     // Constructor
     public SessionState() {
@@ -42,6 +46,12 @@ public class SessionState {
         this.activeRole = newRole;
     }
 
+    public void setNumPlayers(int numPlayers) {this.numPlayers = numPlayers;}
+
+    public int getNumPlayers() {
+        return numPlayers;
+    }
+
     public ServerTextChannel getTownChannel() {
         return townChannel;
     }
@@ -65,6 +75,10 @@ public class SessionState {
     public void setPlayerList(List<Player> playerList) {
         this.playerList = playerList;
     }
+
+    public void setMafiaList(List<User> mafiaList) {this.mafiaList = mafiaList;}
+
+    public void setCitizenList(List<User> citizenList) {this.citizenList = citizenList;}
 
     public void addPlayer(Player p) {
         playerList.add(p);
