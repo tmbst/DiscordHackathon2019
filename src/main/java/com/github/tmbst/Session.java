@@ -156,7 +156,7 @@ public class Session implements MessageCreateListener {
                     .setTopic("Welcome all to the Town of Discord!")
                     // @everyone permissions
                     .addPermissionOverwrite(server.getEveryoneRole(), new PermissionsBuilder()
-                            .setDenied(PermissionType.SEND_MESSAGES, PermissionType.ADD_REACTIONS)
+                            .setDenied(PermissionType.SEND_MESSAGES, PermissionType.ADD_REACTIONS, PermissionType.READ_MESSAGES)
                             .build())
                     // @dead permissions
                     .addPermissionOverwrite(server.getRolesByName("dead").get(0), new PermissionsBuilder()

@@ -115,7 +115,8 @@ public class SuspectCommand implements MessageCreateListener {
         for (Player p: players ) {
             // Get the accused player.
             if(p.getUsername().equals(accusedName)){
-                voteResultEmbed.setDescription("Their role has been revealed to be...." + p.getRole());
+                voteResultEmbed.setDescription("Their role has been revealed to be...." + p.getRole())
+                        .addField("!suspect", "!suspect has been consumed! Wait until the next day for more voting.");
 
                 if (p.getRole() == SessionState.Roles.MAFIA) {
                     state.getMafiaList().remove(accusedUser);
@@ -139,6 +140,9 @@ public class SuspectCommand implements MessageCreateListener {
         accusedUser.removeRole(state.getAliveRole()).join();
         accusedUser.addRole(state.getDeadRole()).join();
 
+        Main.api.removeListener(this);
+
+
     }
 
     public void votePassesInnocent(User accusedUser) {
@@ -148,10 +152,13 @@ public class SuspectCommand implements MessageCreateListener {
         voteResultEmbed.setTitle(accusedName + " is perceived innocent!")
                 .setDescription("The Banhammer awaits the next suspect...")
                 .setAuthor(accusedName)
+                .addField("!suspect", "!suspect has been consumed! Wait until the next day for more voting.")
                 .setThumbnail(accusedUser.getAvatar())
                 .setColor(Color.GREEN)
-                .setFooter("!suspect still available until night.");
+                .setFooter("NOT GUILTY");
         state.getTownChannel().sendMessage(voteResultEmbed).join();
+
+        Main.api.removeListener(this);
 
     }
 
