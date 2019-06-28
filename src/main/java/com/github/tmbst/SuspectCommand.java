@@ -34,7 +34,7 @@ public class SuspectCommand implements MessageCreateListener {
     }
 
     @Override
-    public void onMessageCreate(MessageCreateEvent event) {
+    public void onMessageCreagite(MessageCreateEvent event) {
 
         final String content = event.getMessageContent();
         String[] callArgs = content.split(" ", 3);
@@ -131,8 +131,6 @@ public class SuspectCommand implements MessageCreateListener {
             }
         }
 
-        Main.api.removeListener(this);
-
         // Send message
         Message voteResMessage = state.getTownChannel().sendMessage(voteResultEmbed).join();
         voteResMessage.addReaction(fEmoji);
@@ -144,7 +142,7 @@ public class SuspectCommand implements MessageCreateListener {
     }
 
     public void votePassesInnocent(User accusedUser) {
-
+        emojiAddListenerMgr.remove();
         String accusedName = accusedUser.getName();
         EmbedBuilder voteResultEmbed = new EmbedBuilder();
         voteResultEmbed.setTitle(accusedName + " is perceived innocent!")
