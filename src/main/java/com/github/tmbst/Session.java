@@ -51,7 +51,7 @@ public class Session implements MessageCreateListener {
                     .setAuthor(event.getMessageAuthor().getDisplayName(), null, event.getMessageAuthor().getAvatar())
                     .setColor(Color.BLUE)
                     //TODO: make this image path a relative path
-                    .setImage(new File("/home/justin/Documents/Projects/discordHackathon/src/main/java/com/github/tmbst/resources/splashArt.jpg"))
+                    .setImage(new File("/home/duckytape/Projects/discordHackathon/src/main/java/com/github/tmbst/resources/splashArt.jpg"))
                     .setFooter("Discord Hack Week 2019 Submission!");
 
             // Set up the Message to be sent, initially thumbs-up react this message
@@ -94,11 +94,16 @@ public class Session implements MessageCreateListener {
     // DESCRIPTION: Creates the text-channels needed for the game, determines the users playing
     public void setUp(Optional<Server> serv, List<User> users) {
 
-        Server server;                                      // The server, needed in order to create text-channels
-        ArrayList<Player> players = new ArrayList<>();      // Player Obj Lists
-        ArrayList<User> userMafiaList = new ArrayList<>();  // List of Users in the Mafia
+        Server server;                                          // The server, needed in order to create text-channels
+        ArrayList<Player> players = new ArrayList<>();          // Player Obj Lists
+        ArrayList<User> userMafiaList = new ArrayList<>();      // List of Users in the Mafia
+        ArrayList<User> userCitizenList = new ArrayList<>();    // List of Users in the Citizens
+
         state = new SessionState();
         state.setPlayerList(players);
+        state.setMafiaList(userMafiaList);
+        state.setCitizenList(userCitizenList);
+
         // Remove any listeners
         emojiAddListenerMgr.remove();
 
@@ -111,16 +116,20 @@ public class Session implements MessageCreateListener {
             SessionState.Roles role = SessionState.Roles
                     .values()[new Random().nextInt(SessionState.Roles.values().length)];
 
-            // This is to distinguish who is mafia for when setting up the mafia text-channel
+            // Determine Mafia & Citizen User Lists
             if(role == SessionState.Roles.MAFIA){
                 userMafiaList.add(user);
             }
+            else {
+                userCitizenList.add(user);
+            }
 
-            // Create player and add to list of players
+            // List of Players
             Player player = new Player(name, role);
             players.add(player);
 
         }
+        state.setNumPlayers(players.size());
 
         // Check if the server exists.
         if (serv.isPresent()){
@@ -197,7 +206,7 @@ public class Session implements MessageCreateListener {
         state.getTownChannel().sendMessage(morningEmbed);
 
         //listen for accusations
-        SuspectCommand suspectListener = new SuspectCommand(state.getTownChannel());
+        SuspectCommand suspectListener = new SuspectCommand(state.getTownChannel(), state);
         Main.api.addListener(suspectListener);
 
         //set timer for day

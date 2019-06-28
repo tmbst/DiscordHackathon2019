@@ -18,10 +18,13 @@ public class SuspectCommand implements MessageCreateListener {
     private final ServerTextChannel townChannel;
     private static final String hammerEmoji = "\uD83D\uDD28";
     private static final String innocentEmoji = "\uD83D\uDE07";
+    private final SessionState state;
 
-    public SuspectCommand(ServerTextChannel townChannel) {
+    public SuspectCommand(ServerTextChannel townChannel, SessionState state) {
         super();
         this.townChannel = townChannel;
+        this.state = state;
+
     }
 
     @Override
@@ -38,6 +41,7 @@ public class SuspectCommand implements MessageCreateListener {
                 User accusedUser = currServer.getMemberById(accusedID).get();
                 String accusedName = accusedUser.getName();
                 User accuser = event.getMessage().getAuthor().asUser().get();
+
                 event.getChannel().sendMessage("You have been accused, <@" + accusedID + ">!");
                 Main.api.removeListener(this);
                 EmbedBuilder voteEmbed = new EmbedBuilder()
@@ -49,10 +53,36 @@ public class SuspectCommand implements MessageCreateListener {
                 Message voteMessage = event.getChannel().sendMessage(voteEmbed).join();
                 voteMessage.addReaction(hammerEmoji);
                 voteMessage.addReaction(innocentEmoji);
-                voteMessage.addReactionAddListener(emojiAddEvent -> {
-                    if (emojiAddEvent.getEmoji().equalsEmoji(hammerEmoji)) {
 
+                int numPlayers = state.getNumPlayers();
+                voteMessage.addReactionAddListener(emojiAddEvent -> {
+                    // GUILTY
+                    if (emojiAddEvent.getEmoji().equalsEmoji(hammerEmoji)) {
+                        // VOTE GUILTY COUNTER
+                        if (emojiAddEvent.getCount().isPresent()) {
+                            int voteCounter = emojiAddEvent.getCount().get();
+
+                            if (voteCounter >= numPlayers) {
+                                // sit
+                                // get the role given to accused user (mafia/citizen)
+                                // pop that user from the mafia/citizen list
+                                // flag as dead (they ded)
+                                // announce that accused user died
+                                // check if either mafia or citizen list is empty (?) where does this go...
+                            }
+                        }
+                     // INNOCENT
                     } else if (emojiAddEvent.getEmoji().equalsEmoji(innocentEmoji)) {
+                        // VOTE INNOCENT COUNTER
+                        if (emojiAddEvent.getCount().isPresent()) {
+                            int voteCounter = emojiAddEvent.getCount().get();
+
+                            if (voteCounter >= numPlayers) {
+                                // ok u live I guess
+                                // basically vote fails, so game just continues
+                                // no longer accused
+                            }
+                        }
 
                     }
                 });
