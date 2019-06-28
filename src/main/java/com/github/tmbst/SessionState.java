@@ -11,7 +11,7 @@ import java.util.List;
 public class SessionState {
 
     // Roles stays the same so I made it public and static
-    public static enum Roles {MAFIA, CITIZEN};
+    public static enum Roles {MAFIA, CITIZEN}
 
     private Boolean isDay;
     private Roles activeRole;

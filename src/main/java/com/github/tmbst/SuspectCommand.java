@@ -123,7 +123,7 @@ public class SuspectCommand implements MessageCreateListener {
                 else if(p.getRole() == SessionState.Roles.CITIZEN) {
                     state.getCitizenList().remove(accusedUser);
                 }
-                state.getUsersList().remove(accusedUser);
+                //state.getUsersList().remove(accusedUser);
 
                 voteResultEmbed.setColor(Color.RED);
                 voteResultEmbed.setFooter("F to pay respects");

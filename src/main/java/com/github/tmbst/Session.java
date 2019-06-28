@@ -28,7 +28,7 @@ public class Session implements MessageCreateListener {
     private static ListenerManager<ReactionAddListener> emojiAddListenerMgr;
     private SessionState state;
     private static final int DAYLENGTH = 1;
-    private static final int MAFIAPERPLAYER = 2;
+    private static final int MAFIAPERPLAYER = 5;        // Change this to 2 to test Mafia for 2 Players
     private static final int MINPLAYERS = 2;
 
     @Override
