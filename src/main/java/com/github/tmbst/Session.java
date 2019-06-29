@@ -235,19 +235,25 @@ public class Session implements MessageCreateListener {
             User killed = state.getDeadByMafia();
             EmbedBuilder killedEmbed = new EmbedBuilder();
             if (killed != null) {
-                killedEmbed.setTitle("Oh dear! One of your fellow townsfolk was found dead this morning!")
-                        .setDescription(killed.getName())
+                SessionState.Roles killedRole = SessionState.Roles.CITIZEN; //default
+                for (Player p : state.getPlayerList()) {
+                    if (p.getUsername().equals(killed.getName())) {
+                        killedRole = p.getRole();
+                    }
+                }
+                killedEmbed.setTitle("Oh dear! " + killed.getName() + " was found dead this morning!")
+                        .setDescription("Their role has been revealed to be...." + killedRole)
                         .setColor(Color.RED)
                         .setThumbnail(killed.getAvatar())
                         .setFooter("You've met with a terrible fate, haven't you?");
-                killed.removeRole(state.getAliveRole());
-                killed.addRole(state.getDeadRole());
+                state.getTownChannel().sendMessage(killedEmbed);
+                killPlayer(killed);
             } else {
                 killedEmbed.setTitle("How nice! No one died last night!")
                         .setColor(Color.GREEN)
                         .setFooter("TMBST");
+                state.getTownChannel().sendMessage(killedEmbed);
             }
-            state.getTownChannel().sendMessage(killedEmbed);
         } else {
             state.toggleFirstDay();
         }
@@ -258,35 +264,72 @@ public class Session implements MessageCreateListener {
             .build()
         ).update();
 
+
         //listen for accusations
-        SuspectCommand suspectListener = new SuspectCommand(state.getTownChannel(), state);
-        Main.api.addListener(suspectListener);
+        if (!state.getGameEnded()) {
+            SuspectCommand suspectListener = new SuspectCommand(state.getTownChannel(), this);
+            Main.api.addListener(suspectListener);
 
-        //set timer for day
-        Session us = this;
-        ScheduledExecutorService timerService = Executors.newScheduledThreadPool(1);
-        ScheduledFuture morningTimer = timerService.schedule(new Runnable() {
-            @Override
-            public void run() {
+            //set timer for day
+            Session us = this;
+            ScheduledExecutorService timerService = Executors.newScheduledThreadPool(1);
+            ScheduledFuture morningTimer = timerService.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    if (!state.getGameEnded()) {
+                        EmbedBuilder nightEmbed = new EmbedBuilder()
+                                .setTitle("The night has arrived. Off to bed!")
+                                .setDescription("Please wait for the next day to start.")
+                                .setImage(new File("resources/night.png"))
+                                .setColor(Color.MAGENTA)
+                                .setFooter("Good night everyone :)");
+                        state.getTownChannel().sendMessage(nightEmbed).join();
 
-                EmbedBuilder nightEmbed = new EmbedBuilder()
-                        .setTitle("The night has arrived. Off to bed!")
-                        .setDescription("Please wait for the next day to start.")
-                        .setImage(new File("resources/night.png"))
-                        .setColor(Color.MAGENTA)
-                        .setFooter("Good night everyone :)");
-                state.getTownChannel().sendMessage(nightEmbed).join();
+                        // All alive players cannot talk at night
+                        state.getTownChannel().createUpdater().addPermissionOverwrite(state.getAliveRole(), new PermissionsBuilder()
+                                .setDenied(PermissionType.SEND_MESSAGES)
+                                .build()
+                        ).update();
+                        Main.api.removeListener(suspectListener);
 
-                // All alive players cannot talk at night
-                state.getTownChannel().createUpdater().addPermissionOverwrite(state.getAliveRole(), new PermissionsBuilder()
-                    .setDenied(PermissionType.SEND_MESSAGES)
-                    .build()
-                ).update();
-                Main.api.removeListener(suspectListener);
+                        Main.api.addListener(new KillCommand(us));
+                    }
+                }
+            }, DAYLENGTH, TimeUnit.MINUTES);
+        }
+    }
 
-                Main.api.addListener(new KillCommand(us));
+
+
+    //remove player from their role list, give them the dead role and remove alive role
+    //returns true if game ends, false if not, allowing the caller to clean up any listeners
+    public void killPlayer(User killed) {
+        SessionState.Roles killedRole = SessionState.Roles.CITIZEN; //default
+        for (Player p : state.getPlayerList()) {
+            if (p.getUsername().equals(killed.getName())) {
+                killedRole = p.getRole();
             }
-        }, DAYLENGTH, TimeUnit.MINUTES);
+        }
+        killed.removeRole(state.getAliveRole());
+        killed.addRole(state.getDeadRole());
+        if (killedRole == SessionState.Roles.MAFIA) {
+            state.getMafiaList().remove(killed);
+        } else if (killedRole == SessionState.Roles.CITIZEN) {
+            state.getCitizenList().remove(killed);
+        }
+
+        //check for end of game
+        if (state.getMafiaList().size() == 0) {
+            EmbedBuilder citizenWinEmbed = new EmbedBuilder()
+                    .setTitle("CITIZENS WIN!");
+            state.getTownChannel().sendMessage(citizenWinEmbed).join();
+            state.setGameEnded(true);
+        } else if (state.getCitizenList().size() == 0) {
+            EmbedBuilder mafiaWinEmbed = new EmbedBuilder()
+                    .setTitle("THE MAFIA WINS!");
+            state.getTownChannel().sendMessage(mafiaWinEmbed).join();
+            state.setGameEnded(true);
+        }
     }
 
 
