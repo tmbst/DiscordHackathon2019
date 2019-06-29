@@ -26,12 +26,13 @@ public class SuspectCommand implements MessageCreateListener {
     private static final String innocentEmoji = "\uD83D\uDE07";
     private static final String fEmoji = "\uD83C\uDDEB";
     private final SessionState state;
+    private final Session context;
 
-    public SuspectCommand(ServerTextChannel townChannel, SessionState state) {
+    public SuspectCommand(ServerTextChannel townChannel, Session context) {
         super();
         this.townChannel = townChannel;
-        this.state = state;
-
+        this.state = context.state;
+        this.context = context;
     }
 
     @Override
@@ -120,13 +121,6 @@ public class SuspectCommand implements MessageCreateListener {
                 voteResultEmbed.setDescription("Their role has been revealed to be...." + p.getRole())
                         .addField("!suspect", "!suspect has been consumed! Wait until the next day for more voting.");
 
-                if (p.getRole() == SessionState.Roles.MAFIA) {
-                    state.getMafiaList().remove(accusedUser);
-                }
-                else if(p.getRole() == SessionState.Roles.CITIZEN) {
-                    state.getCitizenList().remove(accusedUser);
-                }
-                //state.getUsersList().remove(accusedUser);
 
                 voteResultEmbed.setColor(Color.RED);
                 voteResultEmbed.setFooter("F to pay respects");
@@ -138,9 +132,7 @@ public class SuspectCommand implements MessageCreateListener {
         Message voteResMessage = state.getTownChannel().sendMessage(voteResultEmbed).join();
         voteResMessage.addReaction(fEmoji);
 
-        // Update user permissions alive -> dead
-        accusedUser.removeRole(state.getAliveRole()).join();
-        accusedUser.addRole(state.getDeadRole()).join();
+        context.killPlayer(accusedUser);
 
         Main.api.removeListener(this);
 

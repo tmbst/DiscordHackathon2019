@@ -15,6 +15,7 @@ public class SessionState {
 
     private Boolean isDay;
     private Boolean firstDay;
+    private Boolean gameEnded;
     private Roles activeRole;
     private ServerTextChannel townChannel;
     private ServerTextChannel mafiaChannel;
@@ -35,6 +36,7 @@ public class SessionState {
         this.activeRole = Roles.CITIZEN;
         playerList = new ArrayList<>();
         firstDay = true;
+        gameEnded = false;
     }
 
     public void toggleDay() {
@@ -149,5 +151,13 @@ public class SessionState {
 
     public void setDeadByMafia(User u) {
         deadByMafia = u;
+    }
+
+    public Boolean getGameEnded() {
+        return gameEnded;
+    }
+
+    public void setGameEnded(Boolean gameEnded) {
+        this.gameEnded = gameEnded;
     }
 }
