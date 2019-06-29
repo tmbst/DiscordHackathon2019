@@ -28,7 +28,7 @@ public class Session implements MessageCreateListener {
     private static ListenerManager<ReactionAddListener> emojiAddListenerMgr;
     private SessionState state;
     private static final int DAYLENGTH = 1;
-    private static final int MAFIAPERPLAYER = 5;        // Change this to 2 to test Mafia for 2 Players
+    private static final int PLAYERSPERMAFIA = 5; // Change this to 2 to test Mafia for 2 Players
     private static final int MINPLAYERS = 2;
 
     @Override
@@ -50,7 +50,7 @@ public class Session implements MessageCreateListener {
                     .setAuthor(event.getMessageAuthor().getDisplayName(), null, event.getMessageAuthor().getAvatar())
                     .setColor(Color.BLUE)
                     //TODO: make this image path a relative path
-                    .setImage(new File("/home/duckytape/Projects/discordHackathon/src/main/java/com/github/tmbst/resources/splashArt.jpg"))
+                    .setImage(new File("/home/justin/Documents/Projects/discordHackathon/src/main/java/com/github/tmbst/resources/splashArt.jpg"))
                     .setFooter("Discord Hack Week 2019 Submission!");
 
             // Set up the Message to be sent, initially thumbs-up react this message
@@ -98,7 +98,9 @@ public class Session implements MessageCreateListener {
         ArrayList<User> userMafiaList = new ArrayList<>();      // List of Users in the Mafia
         ArrayList<User> userCitizenList = new ArrayList<>();    // List of Users in the Citizens
 
-        int mafiaLeft = users.size() / MAFIAPERPLAYER;
+        state = new SessionState();
+        state.setPlayerList(players);
+        int mafiaLeft = users.size() / PLAYERSPERMAFIA;
         int usersLeft = users.size();
 
         state = new SessionState();
@@ -257,6 +259,8 @@ public class Session implements MessageCreateListener {
                     .build()
                 ).update();
                 Main.api.removeListener(suspectListener);
+
+                Main.api.addListener(new KillCommand(state));
             }
         }, DAYLENGTH, TimeUnit.MINUTES);
     }
