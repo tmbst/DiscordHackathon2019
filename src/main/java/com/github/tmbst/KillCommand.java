@@ -65,6 +65,9 @@ public class KillCommand implements MessageCreateListener {
                 if (existingVotersBallot != null) {
                     existingVotersBallot.voters.remove(voterUser);
                     existingVotersBallot.votes--;
+                    if (existingVotersBallot.votes == 0) {
+                        victimVotes.remove(existingVotersBallot);
+                    }
                 }
 
                 Ballot victimBallot = findVictimBallot(victimUser);
@@ -108,6 +111,9 @@ public class KillCommand implements MessageCreateListener {
                     resultsEmbed.setTitle("We have decided to lay the banhammer upon... no one!?!?");
                 } else {
                     resultsEmbed.setTitle("We have decided to lay the banhammer upon " + max.candidate.getName());
+                    resultsEmbed.setThumbnail(max.candidate.getAvatar());
+//                    max.candidate.removeRole(state.getAliveRole()).join();
+//                    max.candidate.addRole(state.getDeadRole()).join();
                 }
                 mafiaChannel.sendMessage(resultsEmbed);
                 endListening();
