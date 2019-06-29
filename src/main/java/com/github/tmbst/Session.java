@@ -40,9 +40,6 @@ public class Session implements MessageCreateListener {
             Optional<Server> server = event.getServer();
 
             // Create the embed
-            // TODO: Add our TMBST Org logo as a thumbnail
-            // TODO: Add our finished "Town of Discord" logo to the setImage
-            // TODO: Hardcoded image! look at .setImage() (Clearly ducky's files)
             EmbedBuilder joinEmbed = new EmbedBuilder()
                     .setTitle("Starting: Town of Discord!")
                     .addField("Players needed to play:", Integer.toString(MINPLAYERS))
@@ -66,18 +63,11 @@ public class Session implements MessageCreateListener {
                     if (emojiAddEvent.getCount().isPresent()) {
                         int playerCount = emojiAddEvent.getCount().get();
 
-                        // Debug
-                        // TODO: Removed when product is finished
-                        new MessageBuilder()
-                                .append("Added")
-                                .append(emojiAddEvent.getUser().getName())
-                                .append(Integer.toString(playerCount))
-                                .send(event.getChannel());
-
-
                         // Set-Up Game, listeners will close as soon as setUp is called.
-                        if (playerCount == MINPLAYERS) {
+                        // +1 because bot doesn't count as a player (since it reacted)
+                        if (playerCount == MINPLAYERS+1) {
                             // Get the list of users wanting to play, pass to the set-up
+                            emojiAddEvent.removeOwnReactionByEmojiFromMessage("\uD83D\uDC4D").join();
                             List<User> userList = emojiAddEvent.getUsers().join();
                             setUp(server,  userList);
                         }
@@ -212,7 +202,7 @@ public class Session implements MessageCreateListener {
             ServerTextChannel mafiaTextChan = mafiaTextChannelBuilder.create().join();
             // Welcome message for Mafia
             mafiaTextChan.sendMessage("@here Welcome to the Hideout! Your task is to kill all citizens." +
-                    "During the night you can choose a user to kill.");
+                    " During the night you can choose a user to kill.");
 
 
             state.setTownChannel(TODTextChan);
