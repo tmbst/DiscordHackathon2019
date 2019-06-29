@@ -26,9 +26,9 @@ import java.util.concurrent.*;
 public class Session implements MessageCreateListener {
 
     private static ListenerManager<ReactionAddListener> emojiAddListenerMgr;
-    private SessionState state;
+    public SessionState state;
     private static final int DAYLENGTH = 1;
-    private static final int PLAYERSPERMAFIA = 5; // Change this to 2 to test Mafia for 2 Players
+    private static final int PLAYERSPERMAFIA = 2; // Change this to 2 to test Mafia for 2 Players
     private static final int MINPLAYERS = 2;
 
     @Override
@@ -149,6 +149,7 @@ public class Session implements MessageCreateListener {
 
             // Everyone is alive at start
             for ( User u : users ) {
+                u.removeRole(state.getDeadRole()).join();
                 u.addRole(state.getAliveRole()).join();
             }
 
@@ -218,8 +219,7 @@ public class Session implements MessageCreateListener {
             state.setGraveyardChannel(graveyardTextChan);
             state.setMafiaChannel(mafiaTextChan);
 
-            // Start the Day
-            citizenPhase();
+            startDay();
 
         }
 
@@ -227,20 +227,49 @@ public class Session implements MessageCreateListener {
 
     // TODO: may need a turn for each role. Better to make a role class that has you implement a turn function?
     // THE AGE OLD DEBATE
-    private void citizenPhase() {
-        //announce day, announce dead
+    public void startDay() {
+        //announce day
         EmbedBuilder morningEmbed = new EmbedBuilder()
                 .setTitle("Rise and shine!")
                 .setDescription("Time for a new day of accusations! Accuse your townsfolk with !suspect <@name>")
                 .setColor(Color.BLUE)
                 .setFooter("TMBST");
-        state.getTownChannel().sendMessage(morningEmbed);
+        state.getTownChannel().sendMessage(morningEmbed).join();
+
+        //announce dead
+        if (!state.isFirstDay()) {
+            User killed = state.getDeadByMafia();
+            EmbedBuilder killedEmbed = new EmbedBuilder();
+            if (killed != null) {
+                killedEmbed.setTitle("Oh dear! One of your fellow townsfolk was found dead this morning!")
+                        .setDescription(killed.getName())
+                        .setColor(Color.RED)
+                        .setThumbnail(killed.getAvatar())
+                        .setFooter("You've met with a terrible fate, haven't you?");
+                killed.removeRole(state.getAliveRole());
+                killed.addRole(state.getDeadRole());
+            } else {
+                killedEmbed.setTitle("How nice! No one died last night!")
+                        .setColor(Color.GREEN)
+                        .setFooter("TMBST");
+            }
+            state.getTownChannel().sendMessage(killedEmbed);
+        } else {
+            state.toggleFirstDay();
+        }
+
+        //ungag everyone
+        state.getTownChannel().createUpdater().addPermissionOverwrite(state.getAliveRole(), new PermissionsBuilder()
+            .setAllowed(PermissionType.SEND_MESSAGES)
+            .build()
+        ).update();
 
         //listen for accusations
         SuspectCommand suspectListener = new SuspectCommand(state.getTownChannel(), state);
         Main.api.addListener(suspectListener);
 
         //set timer for day
+        Session us = this;
         ScheduledExecutorService timerService = Executors.newScheduledThreadPool(1);
         ScheduledFuture morningTimer = timerService.schedule(new Runnable() {
             @Override
@@ -251,7 +280,7 @@ public class Session implements MessageCreateListener {
                         .setDescription("Please wait for the next day to start.")
                         .setColor(Color.MAGENTA)
                         .setFooter("Good night everyone :)");
-                state.getTownChannel().sendMessage(nightEmbed);
+                state.getTownChannel().sendMessage(nightEmbed).join();
 
                 // All alive players cannot talk at night
                 state.getTownChannel().createUpdater().addPermissionOverwrite(state.getAliveRole(), new PermissionsBuilder()
@@ -260,7 +289,7 @@ public class Session implements MessageCreateListener {
                 ).update();
                 Main.api.removeListener(suspectListener);
 
-                Main.api.addListener(new KillCommand(state));
+                Main.api.addListener(new KillCommand(us));
             }
         }, DAYLENGTH, TimeUnit.MINUTES);
     }

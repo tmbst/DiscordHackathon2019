@@ -14,6 +14,7 @@ public class SessionState {
     public static enum Roles {MAFIA, CITIZEN}
 
     private Boolean isDay;
+    private Boolean firstDay;
     private Roles activeRole;
     private ServerTextChannel townChannel;
     private ServerTextChannel mafiaChannel;
@@ -25,6 +26,7 @@ public class SessionState {
     private Server server;
     private Role deadRole;
     private Role aliveRole;
+    private User deadByMafia;
     private int numPlayers;
 
     // Constructor
@@ -32,6 +34,7 @@ public class SessionState {
         this.isDay = true;
         this.activeRole = Roles.CITIZEN;
         playerList = new ArrayList<>();
+        firstDay = true;
     }
 
     public void toggleDay() {
@@ -41,6 +44,14 @@ public class SessionState {
     // Get current time
     public Boolean isDay() {
         return isDay;
+    }
+
+    public void toggleFirstDay() {
+        this.firstDay = !firstDay;
+    }
+
+    public Boolean isFirstDay() {
+        return this.firstDay;
     }
 
     public Roles getActiveRole() {
@@ -130,5 +141,13 @@ public class SessionState {
 
     public void setServer(Server server) {
         this.server = server;
+    }
+
+    public User getDeadByMafia() {
+        return deadByMafia;
+    }
+
+    public void setDeadByMafia(User u) {
+        deadByMafia = u;
     }
 }

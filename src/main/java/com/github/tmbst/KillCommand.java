@@ -17,6 +17,7 @@ public class KillCommand implements MessageCreateListener {
 
     private static final String commandRegex = "!kill(\\s+.*)?";
     private static final String usage = "Usage: !kill <@user>";
+    private final Session session;
     private final ServerTextChannel mafiaChannel;
     private final SessionState state;
     private ArrayList<Ballot> victimVotes;
@@ -35,10 +36,11 @@ public class KillCommand implements MessageCreateListener {
     }
 
 
-    public KillCommand(SessionState state) {
+    public KillCommand(Session session) {
         super();
+        this.session = session;
+        this.state = session.state;
         this.mafiaChannel = state.getMafiaChannel();
-        this.state = state;
         this.victimVotes = new ArrayList<>(5);
         mafiaChannel.sendMessage("Now accepting banhammer votes. Vote with !kill <@user>.");
         startKillTimer();
@@ -109,14 +111,15 @@ public class KillCommand implements MessageCreateListener {
                 resultsEmbed.setFooter("TMBST");
                 if (max == null) {
                     resultsEmbed.setTitle("We have decided to lay the banhammer upon... no one!?!?");
+                    state.setDeadByMafia(null);
                 } else {
                     resultsEmbed.setTitle("We have decided to lay the banhammer upon " + max.candidate.getName());
                     resultsEmbed.setThumbnail(max.candidate.getAvatar());
-                    max.candidate.removeRole(state.getAliveRole()).join();
-                    max.candidate.addRole(state.getDeadRole()).join();
+                    state.setDeadByMafia(max.candidate);
                 }
-                mafiaChannel.sendMessage(resultsEmbed);
+                mafiaChannel.sendMessage(resultsEmbed).join();
                 endListening();
+                session.startDay();
             }
         }, VOTETIME, TimeUnit.SECONDS);
     }
