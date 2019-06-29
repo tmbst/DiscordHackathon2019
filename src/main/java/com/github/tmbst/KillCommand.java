@@ -112,8 +112,8 @@ public class KillCommand implements MessageCreateListener {
                 } else {
                     resultsEmbed.setTitle("We have decided to lay the banhammer upon " + max.candidate.getName());
                     resultsEmbed.setThumbnail(max.candidate.getAvatar());
-//                    max.candidate.removeRole(state.getAliveRole()).join();
-//                    max.candidate.addRole(state.getDeadRole()).join();
+                    max.candidate.removeRole(state.getAliveRole()).join();
+                    max.candidate.addRole(state.getDeadRole()).join();
                 }
                 mafiaChannel.sendMessage(resultsEmbed);
                 endListening();
