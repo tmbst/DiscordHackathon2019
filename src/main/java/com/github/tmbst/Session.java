@@ -199,7 +199,7 @@ public class Session implements MessageCreateListener {
                     .setTopic("Welcome Mafia, try to kill off all the citizens!")
                     // @everyone permissions
                     .addPermissionOverwrite(server.getEveryoneRole(), new PermissionsBuilder()
-                            .setDenied(PermissionType.READ_MESSAGES, PermissionType.SEND_MESSAGES)
+                            .setDenied(PermissionType.SEND_MESSAGES)
                             .build());
 
             // Mafia user permissions
