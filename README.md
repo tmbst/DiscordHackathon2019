@@ -2,6 +2,8 @@
 ![TMBST Town of Discord Logo](src/main/java/com/github/tmbst/resources/town-of-discord.png)
 
 ## Set-Up Information!!!
+Invite the bot: https://discordapp.com/oauth2/authorize?client_id=592849793215234049&scope=bot&permissions=0
+
 Attention server owners, you'll need to add two roles to the server for our bot to correctly play the game.
 "dead" - This role is given to townspeople that die. (Should be able to read text-channels, but not send messages)
 "alive" - This role is given to the townspeople that are alive. (Should be able to read text-channels and send messages)  
