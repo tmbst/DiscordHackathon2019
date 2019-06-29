@@ -219,6 +219,8 @@ public class Session implements MessageCreateListener {
             state.setGraveyardChannel(graveyardTextChan);
             state.setMafiaChannel(mafiaTextChan);
 
+            Main.api.addListener(new TearDownCommand(this));
+
             startDay();
 
         }
@@ -296,4 +298,6 @@ public class Session implements MessageCreateListener {
             }
         }, DAYLENGTH, TimeUnit.MINUTES);
     }
+
+
 }
