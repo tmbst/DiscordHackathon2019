@@ -12,6 +12,7 @@ import org.javacord.api.listener.message.reaction.ReactionAddListener;
 import org.javacord.api.util.event.ListenerManager;
 
 import java.awt.*;
+import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -55,6 +56,7 @@ public class SuspectCommand implements MessageCreateListener {
                 EmbedBuilder voteEmbed = new EmbedBuilder()
                         .setTitle("Vote now! Should we give " + accusedName + " the banhammer?")
                         .setThumbnail(accusedUser.getAvatar())
+                        .setImage(new File("resources/judgement.png"))
                         .setDescription("React to vote! 50% vote required.")
                         .setAuthor(accuser.getName())
                         .setColor(Color.BLUE)

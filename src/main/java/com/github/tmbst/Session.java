@@ -49,8 +49,8 @@ public class Session implements MessageCreateListener {
                     .setDescription("React to join!")
                     .setAuthor(event.getMessageAuthor().getDisplayName(), null, event.getMessageAuthor().getAvatar())
                     .setColor(Color.BLUE)
-                    //TODO: make this image path a relative path
-                    .setImage(new File("/home/justin/Documents/Projects/discordHackathon/src/main/java/com/github/tmbst/resources/splashArt.jpg"))
+                    .setThumbnail(new File("resources/icon.png"))
+                    .setImage(new File("resources/town-of-discord.png"))
                     .setFooter("Discord Hack Week 2019 Submission!");
 
             // Set up the Message to be sent, initially thumbs-up react this message
@@ -232,6 +232,7 @@ public class Session implements MessageCreateListener {
         EmbedBuilder morningEmbed = new EmbedBuilder()
                 .setTitle("Rise and shine!")
                 .setDescription("Time for a new day of accusations! Accuse your townsfolk with !suspect <@name>")
+                .setImage(new File("resources/day.png"))
                 .setColor(Color.BLUE)
                 .setFooter("TMBST");
         state.getTownChannel().sendMessage(morningEmbed).join();
@@ -278,6 +279,7 @@ public class Session implements MessageCreateListener {
                 EmbedBuilder nightEmbed = new EmbedBuilder()
                         .setTitle("The night has arrived. Off to bed!")
                         .setDescription("Please wait for the next day to start.")
+                        .setImage(new File("resources/night.png"))
                         .setColor(Color.MAGENTA)
                         .setFooter("Good night everyone :)");
                 state.getTownChannel().sendMessage(nightEmbed).join();
