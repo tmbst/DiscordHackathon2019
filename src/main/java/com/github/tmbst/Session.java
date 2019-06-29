@@ -6,7 +6,9 @@ import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.permission.PermissionType;
+import org.javacord.api.entity.permission.Permissions;
 import org.javacord.api.entity.permission.PermissionsBuilder;
+import org.javacord.api.entity.permission.RoleBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.event.message.MessageCreateEvent;
@@ -15,11 +17,9 @@ import org.javacord.api.listener.message.reaction.ReactionAddListener;
 import org.javacord.api.util.event.ListenerManager;
 
 import java.awt.*;
-import java.util.List;
+import java.util.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.Random;
+import java.util.List;
 import java.util.concurrent.*;
 
 
@@ -28,7 +28,7 @@ public class Session implements MessageCreateListener {
     private static ListenerManager<ReactionAddListener> emojiAddListenerMgr;
     private SessionState state;
     private static final int DAYLENGTH = 1;
-    private static final int PLAYERSPERMAFIA = 1;
+    private static final int PLAYERSPERMAFIA = 5; // Change this to 2 to test Mafia for 2 Players
     private static final int MINPLAYERS = 2;
 
     @Override
@@ -102,8 +102,13 @@ public class Session implements MessageCreateListener {
         state.setPlayerList(players);
         int mafiaLeft = users.size() / PLAYERSPERMAFIA;
         int usersLeft = users.size();
+
+        state = new SessionState();
         state.setMafiaList(userMafiaList);
         state.setCitizenList(userCitizenList);
+        state.setPlayerList(players);
+        state.setUsersList(users);
+        state.setNumPlayers(users.size());
 
         // Remove any listeners
         emojiAddListenerMgr.remove();
@@ -126,7 +131,6 @@ public class Session implements MessageCreateListener {
                 currRole = SessionState.Roles.values()[rand.nextInt(SessionState.Roles.values().length - 1) + 1];
                 userCitizenList.add(user);
             }
-
             usersLeft--;
 
             // Create player and add to list of players
@@ -134,65 +138,87 @@ public class Session implements MessageCreateListener {
             players.add(player);
 
         }
-        state.setNumPlayers(players.size());
 
         // Check if the server exists.
         if (serv.isPresent()){
             server = serv.get();
-            state.setServer(server);
 
-            // Set up the main text-channel
-            // DENY: Everyone from seeing the channel except the players playing the game.
-            // ALLOW: Players playing to see the #townofdiscord channel.
+            state.setServer(server);
+            state.setDeadRole(server.getRolesByName("dead").get(0));
+            state.setAliveRole(server.getRolesByName("alive").get(0));
+
+            // Everyone is alive at start
+            for ( User u : users ) {
+                u.addRole(state.getAliveRole()).join();
+            }
+
+            // Set up #townofdiscord text-channel
             ServerTextChannelBuilder TODTextChanBuilder = new ServerTextChannelBuilder(server)
                     .setName("townOfDiscord")
                     .setTopic("Welcome all to the Town of Discord!")
+                    // @everyone permissions
                     .addPermissionOverwrite(server.getEveryoneRole(), new PermissionsBuilder()
-                            .setDenied(PermissionType.READ_MESSAGES, PermissionType.SEND_MESSAGES)
-                            .build());
-            for (User u : users) {
-                TODTextChanBuilder.addPermissionOverwrite(u, new PermissionsBuilder()
+                            .setDenied(PermissionType.SEND_MESSAGES, PermissionType.ADD_REACTIONS, PermissionType.READ_MESSAGES)
+                            .build())
+                    // @dead permissions
+                    .addPermissionOverwrite(server.getRolesByName("dead").get(0), new PermissionsBuilder()
+                            .setAllowed(PermissionType.READ_MESSAGES)
+                            .setDenied(PermissionType.SEND_MESSAGES, PermissionType.ADD_REACTIONS)
+                            .build())
+                    // @alive permissions
+                    .addPermissionOverwrite(server.getRolesByName("alive").get(0), new PermissionsBuilder()
                             .setAllowed(PermissionType.READ_MESSAGES, PermissionType.SEND_MESSAGES, PermissionType.ADD_REACTIONS)
-                            .setDenied(PermissionType.ATTACH_FILE)
                             .build());
-            }
-            // Create the #townOfDiscord text channel
             ServerTextChannel TODTextChan = TODTextChanBuilder.create().join();
-            state.setTownChannel(TODTextChan);
 
-            // Welcome message for the #townOfDiscord channel
+            // DEBUG: Welcome message for the #townOfDiscord channel
+            // TODO: Don't forget to remove the role reveal..
             for (Player p : players) {
                TODTextChan.sendMessage("Welcome: " + p.getUsername() + " " + p.getRole());
             }
 
-            // TODO: Note that as long as we assign at least 1 mafia, then this check is irrelevant! Get rid of later.
-            if (!userMafiaList.isEmpty()) {
-
-                // Set up the mafia text-channel
-                // DENY: All players except mafia from seeing this channel.
-                ServerTextChannelBuilder mafiaTextChannelBuilder = new ServerTextChannelBuilder(server)
-                        .setName("mafia-hideout")
-                        .setTopic("Welcome Mafia, try to kill off all the citizens!")
-                        .addPermissionOverwrite(server.getEveryoneRole(), new PermissionsBuilder()
-                                .setDenied(PermissionType.READ_MESSAGES, PermissionType.SEND_MESSAGES)
-                                .build());
-
-                for (User u : userMafiaList) {
-                    mafiaTextChannelBuilder.addPermissionOverwrite(u, new PermissionsBuilder()
-                            .setAllowed(PermissionType.READ_MESSAGES, PermissionType.SEND_MESSAGES, PermissionType.ADD_REACTIONS)
+            // Set up #graveyard text-channel
+            ServerTextChannelBuilder graveyardTextChanBuilder = new ServerTextChannelBuilder(server)
+                    .setName("graveyard")
+                    .setTopic("Oh dear, you are dead!")
+                    // @everyone permissions
+                    .addPermissionOverwrite(server.getEveryoneRole(), new PermissionsBuilder()
+                            .setDenied(PermissionType.READ_MESSAGES, PermissionType.SEND_MESSAGES)
+                            .build())
+                    // @dead permissions
+                    .addPermissionOverwrite(server.getRolesByName("dead").get(0), new PermissionsBuilder()
+                            .setAllowed(PermissionType.READ_MESSAGES, PermissionType.SEND_MESSAGES)
                             .setDenied(PermissionType.ATTACH_FILE)
                             .build());
-                }
-                // Create the #mafiahideout text channel
-                ServerTextChannel mafiaTextChan = mafiaTextChannelBuilder.create().join();
-                state.setMafiaChannel(mafiaTextChan);
+            ServerTextChannel graveyardTextChan = graveyardTextChanBuilder.create().join();
 
-                // Welcome message for the #mafiahideout channel
-                mafiaTextChan.sendMessage("@here Welcome to the Hideout! Your task is to kill all citizens." +
-                        "During the night you can choose a user to kill.");
+            // Set up #mafia text-channel
+            ServerTextChannelBuilder mafiaTextChannelBuilder = new ServerTextChannelBuilder(server)
+                    .setName("mafia-hideout")
+                    .setTopic("Welcome Mafia, try to kill off all the citizens!")
+                    // @everyone permissions
+                    .addPermissionOverwrite(server.getEveryoneRole(), new PermissionsBuilder()
+                            .setDenied(PermissionType.READ_MESSAGES, PermissionType.SEND_MESSAGES)
+                            .build());
 
+            // Mafia user permissions
+            for (User u : userMafiaList) {
+                mafiaTextChannelBuilder.addPermissionOverwrite(u, new PermissionsBuilder()
+                        .setAllowed(PermissionType.READ_MESSAGES, PermissionType.SEND_MESSAGES, PermissionType.ADD_REACTIONS)
+                        .setDenied(PermissionType.ATTACH_FILE)
+                        .build());
             }
+            ServerTextChannel mafiaTextChan = mafiaTextChannelBuilder.create().join();
+            // Welcome message for Mafia
+            mafiaTextChan.sendMessage("@here Welcome to the Hideout! Your task is to kill all citizens." +
+                    "During the night you can choose a user to kill.");
 
+
+            state.setTownChannel(TODTextChan);
+            state.setGraveyardChannel(graveyardTextChan);
+            state.setMafiaChannel(mafiaTextChan);
+
+            // Start the Day
             citizenPhase();
 
         }
@@ -219,14 +245,16 @@ public class Session implements MessageCreateListener {
         ScheduledFuture morningTimer = timerService.schedule(new Runnable() {
             @Override
             public void run() {
+
                 EmbedBuilder nightEmbed = new EmbedBuilder()
-                        .setTitle("Off to bed!")
-                        .setDescription("The day has ended. Please wait for the next day to start.")
-                        .setColor(Color.BLUE)
-                        .setFooter("TMBST");
+                        .setTitle("The night has arrived. Off to bed!")
+                        .setDescription("Please wait for the next day to start.")
+                        .setColor(Color.MAGENTA)
+                        .setFooter("Good night everyone :)");
                 state.getTownChannel().sendMessage(nightEmbed);
 
-                state.getTownChannel().createUpdater().addPermissionOverwrite(state.getServer().getEveryoneRole(), new PermissionsBuilder()
+                // All alive players cannot talk at night
+                state.getTownChannel().createUpdater().addPermissionOverwrite(state.getAliveRole(), new PermissionsBuilder()
                     .setDenied(PermissionType.SEND_MESSAGES)
                     .build()
                 ).update();
