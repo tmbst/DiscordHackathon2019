@@ -47,7 +47,7 @@ public class SessionState {
     }
 
     public void toggleFirstDay() {
-        this.firstDay = !firstDay;
+        this.firstDay = !this.firstDay;
     }
 
     public Boolean isFirstDay() {

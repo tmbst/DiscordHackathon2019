@@ -159,7 +159,7 @@ public class Session implements MessageCreateListener {
                     .setTopic("Welcome all to the Town of Discord!")
                     // @everyone permissions
                     .addPermissionOverwrite(server.getEveryoneRole(), new PermissionsBuilder()
-                            .setDenied(PermissionType.SEND_MESSAGES, PermissionType.ADD_REACTIONS, PermissionType.READ_MESSAGES)
+                            .setDenied(PermissionType.SEND_MESSAGES)
                             .build())
                     // @dead permissions
                     .addPermissionOverwrite(server.getRolesByName("dead").get(0), new PermissionsBuilder()
@@ -228,6 +228,7 @@ public class Session implements MessageCreateListener {
     // TODO: may need a turn for each role. Better to make a role class that has you implement a turn function?
     // THE AGE OLD DEBATE
     public void startDay() {
+
         //announce day
         EmbedBuilder morningEmbed = new EmbedBuilder()
                 .setTitle("Rise and shine!")
