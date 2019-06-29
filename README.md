@@ -1,7 +1,7 @@
 # TMBST Discord Hack Week 2019 Submission - "Town of Discord"
 ![TMBST Town of Discord Logo](src/main/java/com/github/tmbst/resources/town-of-discord.png)
 
-## Set-Up information!!!
+## Set-Up Information!!!
 Attention server owners, you'll need to add two roles to the server for our bot to correctly play the game.
 "dead" - This role is given to townspeople that die. (Should be able to read text-channels, but not send messages)
 "alive" - This role is given to the townspeople that are alive. (Should be able to read text-channels and send messages)  
