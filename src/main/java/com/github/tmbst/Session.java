@@ -28,8 +28,9 @@ public class Session implements MessageCreateListener {
     private static ListenerManager<ReactionAddListener> emojiAddListenerMgr;
     public SessionState state;
     private static final int DAYLENGTH = 1;
-    private static final int PLAYERSPERMAFIA = 2; // Change this to 2 to test Mafia for 2 Players
-    private static final int MINPLAYERS = 2;
+    private static final int PLAYERSPERMAFIA = 5; // Change this to 2 to test Mafia for 2 Players
+    private static final int MINPLAYERS = 5;
+    private static final String THUMBSUP = "\uD83D\uDC4D";
 
     @Override
     public void onMessageCreate(MessageCreateEvent event) {
@@ -52,22 +53,20 @@ public class Session implements MessageCreateListener {
 
             // Set up the Message to be sent, initially thumbs-up react this message
             Message message = event.getChannel().sendMessage(joinEmbed).join();
-            message.addReaction("\uD83D\uDC4D");
+            message.addReaction(THUMBSUP);
 
             // Begin listening for :thumbs-up: reacts, 5 needed, add to a user list
-            // TODO: removeOwnReactEmojiFromMessage() OR have an off by one
-            // TODO: For testing sake, limit set to 2
             emojiAddListenerMgr = message.addReactionAddListener(emojiAddEvent -> {
-                if (emojiAddEvent.getEmoji().equalsEmoji("\uD83D\uDC4D")) {
+                if (emojiAddEvent.getEmoji().equalsEmoji(THUMBSUP)) {
                     // Check the counter
                     if (emojiAddEvent.getCount().isPresent()) {
                         int playerCount = emojiAddEvent.getCount().get();
 
                         // Set-Up Game, listeners will close as soon as setUp is called.
                         // +1 because bot doesn't count as a player (since it reacted)
-                        if (playerCount == MINPLAYERS+1) {
+                        if (playerCount == MINPLAYERS + 1) {
                             // Get the list of users wanting to play, pass to the set-up
-                            emojiAddEvent.removeOwnReactionByEmojiFromMessage("\uD83D\uDC4D").join();
+                            emojiAddEvent.removeOwnReactionByEmojiFromMessage(THUMBSUP).join();
                             List<User> userList = emojiAddEvent.getUsers().join();
                             setUp(server,  userList);
                         }
@@ -103,8 +102,10 @@ public class Session implements MessageCreateListener {
         // Remove any listeners
         emojiAddListenerMgr.remove();
 
-        // TODO: Note that a cap is needed on number of Mafia! Minimum of at least 1 for 5 players...
         // For each user wanting to play, create a Player Obj.
+        /*
+            TODO: Explain math for assigning mafia role in a block comment
+         */
         Random rand = new Random();
         for (User user : users) {
             SessionState.Roles currRole;

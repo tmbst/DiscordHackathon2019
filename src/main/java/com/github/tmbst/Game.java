@@ -7,7 +7,6 @@ import org.javacord.api.DiscordApiBuilder;
 
 public class Game {
 
-    // Attributes <TODO add more attributes when necessary>
     private static Game game;
     private DiscordApi api;
 
