@@ -27,6 +27,8 @@ public class Session implements MessageCreateListener {
     private static final int PLAYERSPERMAFIA = 5;
     private static final int MINPLAYERS = 5;
     private static final String THUMBSUP = "\uD83D\uDC4D";
+    private static final String DEADROLE = "dead";
+    private static final String ALIVEROLE = "alive";
 
     @Override
     public void onMessageCreate(MessageCreateEvent event) {
@@ -135,8 +137,8 @@ public class Session implements MessageCreateListener {
             server = serv.get();
 
             state.setServer(server);
-            state.setDeadRole(server.getRolesByName("dead").get(0));
-            state.setAliveRole(server.getRolesByName("alive").get(0));
+            state.setDeadRole(server.getRolesByName(DEADROLE).get(0));
+            state.setAliveRole(server.getRolesByName(ALIVEROLE).get(0));
 
             // Everyone is alive at start
             for ( User u : users ) {
@@ -153,12 +155,12 @@ public class Session implements MessageCreateListener {
                             .setDenied(PermissionType.SEND_MESSAGES)
                             .build())
                     // @dead permissions
-                    .addPermissionOverwrite(server.getRolesByName("dead").get(0), new PermissionsBuilder()
+                    .addPermissionOverwrite(server.getRolesByName(DEADROLE).get(0), new PermissionsBuilder()
                             .setAllowed(PermissionType.READ_MESSAGES)
                             .setDenied(PermissionType.SEND_MESSAGES, PermissionType.ADD_REACTIONS)
                             .build())
                     // @alive permissions
-                    .addPermissionOverwrite(server.getRolesByName("alive").get(0), new PermissionsBuilder()
+                    .addPermissionOverwrite(server.getRolesByName(ALIVEROLE).get(0), new PermissionsBuilder()
                             .setAllowed(PermissionType.READ_MESSAGES, PermissionType.SEND_MESSAGES, PermissionType.ADD_REACTIONS)
                             .build());
             ServerTextChannel TODTextChan = TODTextChanBuilder.create().join();
@@ -178,7 +180,7 @@ public class Session implements MessageCreateListener {
                             .setDenied(PermissionType.READ_MESSAGES, PermissionType.SEND_MESSAGES)
                             .build())
                     // @dead permissions
-                    .addPermissionOverwrite(server.getRolesByName("dead").get(0), new PermissionsBuilder()
+                    .addPermissionOverwrite(server.getRolesByName(DEADROLE).get(0), new PermissionsBuilder()
                             .setAllowed(PermissionType.READ_MESSAGES, PermissionType.SEND_MESSAGES)
                             .setDenied(PermissionType.ATTACH_FILE)
                             .build());
