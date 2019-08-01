@@ -2,7 +2,6 @@ package com.github.tmbst;
 
 import org.javacord.api.entity.channel.ServerTextChannel;
 import org.javacord.api.entity.message.Message;
-import org.javacord.api.entity.message.embed.Embed;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
@@ -12,9 +11,7 @@ import org.javacord.api.listener.message.reaction.ReactionAddListener;
 import org.javacord.api.util.event.ListenerManager;
 
 import java.awt.*;
-import java.io.File;
 import java.util.List;
-import java.util.ArrayList;
 
 public class SuspectCommand implements MessageCreateListener {
 
@@ -57,7 +54,7 @@ public class SuspectCommand implements MessageCreateListener {
                 EmbedBuilder voteEmbed = new EmbedBuilder()
                         .setTitle("Vote now! Should we give " + accusedName + " the banhammer?")
                         .setThumbnail(accusedUser.getAvatar())
-                        .setImage(new File("resources/judgement.png"))
+                        .setImage(Utility.getResource("judgement.png"))
                         .setDescription("React to vote! 50% vote required.")
                         .setAuthor(accuser.getName())
                         .setColor(Color.BLUE)

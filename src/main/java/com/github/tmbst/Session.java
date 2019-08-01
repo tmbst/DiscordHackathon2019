@@ -17,6 +17,7 @@ import org.javacord.api.listener.message.reaction.ReactionAddListener;
 import org.javacord.api.util.event.ListenerManager;
 
 import java.awt.*;
+import java.io.InputStream;
 import java.util.*;
 import java.io.File;
 import java.util.List;
@@ -28,7 +29,7 @@ public class Session implements MessageCreateListener {
     private static ListenerManager<ReactionAddListener> emojiAddListenerMgr;
     public SessionState state;
     private static final int DAYLENGTH = 1;
-    private static final int PLAYERSPERMAFIA = 5; // Change this to 2 to test Mafia for 2 Players
+    private static final int PLAYERSPERMAFIA = 5;
     private static final int MINPLAYERS = 5;
     private static final String THUMBSUP = "\uD83D\uDC4D";
 
@@ -47,8 +48,8 @@ public class Session implements MessageCreateListener {
                     .setDescription("React to join!")
                     .setAuthor(event.getMessageAuthor().getDisplayName(), null, event.getMessageAuthor().getAvatar())
                     .setColor(Color.BLUE)
-                    .setThumbnail(new File("resources/icon.png"))
-                    .setImage(new File("resources/town-of-discord.png"))
+                    .setThumbnail(Utility.getResource("icon.png"))
+                    .setImage(Utility.getResource("town-of-discord.png"))
                     .setFooter("Discord Hack Week 2019 Submission!");
 
             // Set up the Message to be sent, initially thumbs-up react this message
@@ -68,7 +69,7 @@ public class Session implements MessageCreateListener {
                             // Get the list of users wanting to play, pass to the set-up
                             emojiAddEvent.removeOwnReactionByEmojiFromMessage(THUMBSUP).join();
                             List<User> userList = emojiAddEvent.getUsers().join();
-                            setUp(server,  userList);
+                            setUp(server, userList);
                         }
                     }
                 }
@@ -226,7 +227,7 @@ public class Session implements MessageCreateListener {
         EmbedBuilder morningEmbed = new EmbedBuilder()
                 .setTitle("Rise and shine!")
                 .setDescription("Time for a new day of accusations! Accuse your townsfolk with !suspect <@name>")
-                .setImage(new File("resources/day.png"))
+                .setImage(Utility.getResource("day.png"))
                 .setColor(Color.BLUE)
                 .setFooter("TMBST");
         state.getTownChannel().sendMessage(morningEmbed).join();
@@ -281,7 +282,7 @@ public class Session implements MessageCreateListener {
                         EmbedBuilder nightEmbed = new EmbedBuilder()
                                 .setTitle("The night has arrived. Off to bed!")
                                 .setDescription("Please wait for the next day to start.")
-                                .setImage(new File("resources/night.png"))
+                                .setImage(Utility.getResource("night.png"))
                                 .setColor(Color.MAGENTA)
                                 .setFooter("Good night everyone :)");
                         state.getTownChannel().sendMessage(nightEmbed).join();
