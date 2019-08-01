@@ -10,7 +10,7 @@ import java.util.List;
 
 public class SessionState {
 
-    // Roles stays the same so I made it public and static
+    // MAFIA should stay the first role on the list due to the way mafia is assigned in Session.setUp().
     public static enum Roles {MAFIA, CITIZEN}
 
     private Boolean isDay;

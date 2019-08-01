@@ -3,12 +3,9 @@ package com.github.tmbst;
 import org.javacord.api.entity.channel.ServerTextChannel;
 import org.javacord.api.entity.channel.ServerTextChannelBuilder;
 import org.javacord.api.entity.message.Message;
-import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.permission.PermissionType;
-import org.javacord.api.entity.permission.Permissions;
 import org.javacord.api.entity.permission.PermissionsBuilder;
-import org.javacord.api.entity.permission.RoleBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.event.message.MessageCreateEvent;
@@ -17,9 +14,7 @@ import org.javacord.api.listener.message.reaction.ReactionAddListener;
 import org.javacord.api.util.event.ListenerManager;
 
 import java.awt.*;
-import java.io.InputStream;
 import java.util.*;
-import java.io.File;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -100,38 +95,42 @@ public class Session implements MessageCreateListener {
         state.setUsersList(users);
         state.setNumPlayers(users.size());
 
-        // Remove any listeners
         emojiAddListenerMgr.remove();
 
-        // For each user wanting to play, create a Player Obj.
         /*
-            TODO: Explain math for assigning mafia role in a block comment
+            The following loop is a fair method of assigning players the mafia role. Each player has an equal chance at
+            receiving the role.
+            Each player gets a (mafiaLeft / usersLeft) chance at the role each loop iteration. This chance is devised
+            by getting a random number in the range [0, usersLeft - 1] and checking if that number is less than the
+            number of mafia spots left.
+            This is fair since the accumulated chance of receiving the role at any point in the loop is the product
+            (1 - prob of each previous player receiving the role) multiplied by the probability of the current player
+            receiving the role, which will always be (numMafia / numPlayers).
+
+            When a player does NOT receive the mafia role, they are given a random role from the role list defined in
+            SessionState.Roles that is not mafia. This is done by assuming that the mafia role is the first in the enum
+            and grabbing a role that is not the first one. Keep this in mind if changing the enum around.
          */
         Random rand = new Random();
         for (User user : users) {
             SessionState.Roles currRole;
             String currName = user.getName();
 
-            //ensure number of mafia is filled
             boolean isMafia = rand.nextInt(usersLeft) < mafiaLeft;
             if (isMafia) {
                 currRole = SessionState.Roles.MAFIA;
                 userMafiaList.add(user);
                 mafiaLeft--;
             } else {
-                //note: this works due to mafia being the first on the list of roles
                 currRole = SessionState.Roles.values()[rand.nextInt(SessionState.Roles.values().length - 1) + 1];
                 userCitizenList.add(user);
             }
             usersLeft--;
 
-            // Create player and add to list of players
             Player player = new Player(currName, currRole);
             players.add(player);
-
         }
 
-        // Check if the server exists.
         if (serv.isPresent()){
             server = serv.get();
 
